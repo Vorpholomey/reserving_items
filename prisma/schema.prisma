@@ -1,0 +1,108 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String    @id @default(uuid())
+  email           String    @unique
+  passwordHash    String
+  name            String?
+  avatarUrl       String?
+  isVerified      Boolean   @default(false)
+  emailVerified   DateTime?
+  createdAt       DateTime  @default(now())
+  bookings        Booking[] @relation("RenterBookings")
+  items           Item[]
+  reviewsWritten  Review[]  @relation("ReviewAuthors")
+  reviewsReceived Review[]  @relation("ReviewTargets")
+  sentMessages    Message[]
+}
+
+model Item {
+  id            String    @id @default(uuid())
+  ownerId       String
+  title         String
+  description   String
+  pricePerDay   Decimal   @db.Decimal(10, 2)
+  depositAmount Decimal   @db.Decimal(10, 2)
+  latitude      Float?    @map("lat")
+  longitude     Float?    @map("lng")
+  category      String
+  images        String[]
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  bookings      Booking[]
+  owner         User      @relation(fields: [ownerId], references: [id])
+
+  @@index([latitude, longitude])
+  @@map("items")
+}
+
+model Booking {
+  id          String        @id @default(uuid())
+  itemId      String
+  renterId    String
+  startDate   DateTime
+  endDate     DateTime
+  totalAmount Decimal       @db.Decimal(10, 2)
+  status      BookingStatus @default(PENDING)
+  depositHeld Boolean       @default(true)
+  confirmedAt DateTime?
+  receivedAt  DateTime?
+  returnedAt  DateTime?
+  completedAt DateTime?
+  cancelledAt DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @default(now()) @updatedAt
+  item        Item          @relation(fields: [itemId], references: [id])
+  renter      User          @relation("RenterBookings", fields: [renterId], references: [id])
+  reviews     Review[]
+  messages    Message[]
+
+  @@index([itemId, startDate, endDate])
+  @@map("bookings")
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  bookingId String
+  authorId  String
+  targetId  String
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+  author    User     @relation("ReviewAuthors", fields: [authorId], references: [id])
+  target    User     @relation("ReviewTargets", fields: [targetId], references: [id])
+  booking   Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@unique([authorId, bookingId])
+  @@map("reviews")
+}
+
+model Message {
+  id          String    @id @default(uuid())
+  bookingId   String
+  senderId    String
+  content     String
+  createdAt   DateTime  @default(now())
+  booking     Booking   @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  sender      User      @relation(fields: [senderId], references: [id])
+
+  @@index([bookingId])
+  @@map("messages")
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  ACTIVE
+  RETURNED
+  COMPLETED
+  CANCELLED
+  REJECTED
+}

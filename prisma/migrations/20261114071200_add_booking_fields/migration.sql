@@ -1,0 +1,9 @@
+-- AlterEnum
+ALTER TYPE "BookingStatus" ADD VALUE 'COMPLETED';
+ALTER TYPE "BookingStatus" ADD VALUE 'REJECTED';
+
+-- AlterTable
+ALTER TABLE "bookings" DROP COLUMN "totalPrice";
+ALTER TABLE "bookings" DROP COLUMN "depositHeld";
+ALTER TABLE "bookings" ADD COLUMN "totalAmount" DECIMAL(10,2) NOT NULL DEFAULT 0;
+ALTER TABLE "bookings" ADD COLUMN "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
