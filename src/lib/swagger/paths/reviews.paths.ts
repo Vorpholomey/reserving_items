@@ -18,12 +18,13 @@ const CreateReviewBodySchema = z.object({
   }),
 });
 
-// GET /api/reviews - Список отзывов
+// GET /api/reviews — Список отзывов
 registry.registerPath({
   method: 'get',
   path: '/api/reviews',
   summary: 'Получить список отзывов',
   description: 'Возвращает список отзывов. Поддерживает фильтрацию по userId (отзывы о пользователе).',
+  tags: ['Reviews'],
   request: {
     query: z.object({
       userId: z.string().uuid().optional().openapi({
@@ -44,7 +45,7 @@ registry.registerPath({
   },
 });
 
-// POST /api/reviews - Создать отзыв
+// POST /api/reviews — Создать отзыв
 registry.registerPath({
   method: 'post',
   path: '/api/reviews',
@@ -60,6 +61,7 @@ registry.registerPath({
   - владелец оставляет отзыв арендатору
 
 Требуется аутентификация.`,
+  tags: ['Reviews'],
   security: [{ bearerAuth: [] }],
   request: {
     body: {

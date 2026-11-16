@@ -31,12 +31,13 @@ const BookingIdParamSchema = registry.registerParameter(
   })
 );
 
-// GET /api/bookings - Список бронирований
+// GET /api/bookings — Список бронирований
 registry.registerPath({
   method: 'get',
   path: '/api/bookings',
   summary: 'Получить список бронирований',
   description: 'Возвращает список всех бронирований. Требуется аутентификация.',
+  tags: ['Bookings'],
   security: [{ bearerAuth: [] }],
   responses: {
     200: {
@@ -51,12 +52,13 @@ registry.registerPath({
   },
 });
 
-// POST /api/bookings - Создание бронирования
+// POST /api/bookings — Создание бронирования
 registry.registerPath({
   method: 'post',
   path: '/api/bookings',
   summary: 'Создать бронирование',
   description: 'Создаёт новое бронирование предмета. Требуется аутентификация.',
+  tags: ['Bookings'],
   security: [{ bearerAuth: [] }],
   request: {
     body: {
@@ -83,12 +85,13 @@ registry.registerPath({
   },
 });
 
-// GET /api/bookings/my - Мои бронирования
+// GET /api/bookings/my — Мои бронирования (как арендатор)
 registry.registerPath({
   method: 'get',
   path: '/api/bookings/my',
   summary: 'Получить мои бронирования',
   description: 'Возвращает список бронирований текущего пользователя как арендатора. Требуется аутентификация.',
+  tags: ['Bookings/Mine'],
   security: [{ bearerAuth: [] }],
   responses: {
     200: {
@@ -103,12 +106,13 @@ registry.registerPath({
   },
 });
 
-// GET /api/bookings/received - Полученные бронирования
+// GET /api/bookings/received — Полученные бронирования (как владелец)
 registry.registerPath({
   method: 'get',
   path: '/api/bookings/received',
   summary: 'Получить полученные бронирования',
   description: 'Возвращает список бронирований текущего пользователя как владельца предмета. Требуется аутентификация.',
+  tags: ['Bookings/Received'],
   security: [{ bearerAuth: [] }],
   responses: {
     200: {
@@ -123,12 +127,13 @@ registry.registerPath({
   },
 });
 
-// GET /api/bookings/item/{itemId} - Бронирования по предмету
+// GET /api/bookings/item/{itemId} — Бронирования по предмету
 registry.registerPath({
   method: 'get',
   path: '/api/bookings/item/{itemId}',
   summary: 'Получить бронирования по предмету',
   description: 'Возвращает список бронирований для конкретного предмета.',
+  tags: ['Bookings'],
   request: {
     params: z.object({
       itemId: z.string().uuid().openapi({

@@ -10,12 +10,13 @@ const CreateMessageBodySchema = z.object({
   }),
 });
 
-// GET /api/bookings/{bookingId}/messages - Получить сообщения чата
+// GET /api/bookings/{bookingId}/messages — Получить сообщения чата
 registry.registerPath({
   method: 'get',
   path: '/api/bookings/{bookingId}/messages',
   summary: 'Получить сообщения чата',
   description: 'Возвращает список сообщений чата для конкретного бронирования. Доступ только у арендатора и владельца. Требуется аутентификация.',
+  tags: ['Messages'],
   security: [{ bearerAuth: [] }],
   request: {
     params: z.object({
@@ -40,12 +41,13 @@ registry.registerPath({
   },
 });
 
-// POST /api/bookings/{bookingId}/messages - Отправить сообщение
+// POST /api/bookings/{bookingId}/messages — Отправить сообщение
 registry.registerPath({
   method: 'post',
   path: '/api/bookings/{bookingId}/messages',
   summary: 'Отправить сообщение в чат',
   description: 'Отправляет сообщение в чат бронирования. Доступ только у арендатора и владельца. Требуется аутентификация.',
+  tags: ['Messages'],
   security: [{ bearerAuth: [] }],
   request: {
     params: z.object({

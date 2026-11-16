@@ -10,7 +10,7 @@ const UpdateStatusBodySchema = z.object({
   }),
 });
 
-// PATCH /api/bookings/{bookingId}/status - Сменить статус бронирования
+// PATCH /api/bookings/{bookingId}/status — Сменить статус бронирования
 registry.registerPath({
   method: 'patch',
   path: '/api/bookings/{bookingId}/status',
@@ -26,6 +26,7 @@ registry.registerPath({
 - ACTIVE → CANCELLED — владелец или арендатор
 
 Требуется аутентификация.`,
+  tags: ['Bookings'],
   security: [{ bearerAuth: [] }],
   request: {
     params: z.object({

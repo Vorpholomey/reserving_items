@@ -8,6 +8,13 @@ import './paths/messages.paths';
 import './paths/status.paths';
 import './paths/reviews.paths';
 
+// Импортируем все схемы для регистрации в registry (side effects)
+import './schemas/booking.schema';
+import './schemas/item.schema';
+import './schemas/message.schema';
+import './schemas/review.schema';
+import './schemas/user.schema';
+
 // Регистрируем security scheme через registry
 registry.registerComponent('securitySchemes', 'bearerAuth', {
   type: 'http',
@@ -16,23 +23,17 @@ registry.registerComponent('securitySchemes', 'bearerAuth', {
   description: 'Введите JWT токен для аутентификации',
 });
 
-// Кэшируем документ для повторного использования
-let cachedDocument: unknown | null = null;
-
 /**
  * Генерирует OpenAPI документ для API
+ * Документ генерируется при каждом запросе чтобы отражать актуальное состояние registry
  */
 export function generateOpenAPIDocument() {
-  if (cachedDocument) {
-    return cachedDocument as object;
-  }
-
   const generator = new OpenApiGeneratorV31(registry.definitions, {
     unionPreferredType: 'oneOf',
     sortComponents: 'alphabetically',
   });
 
-  cachedDocument = generator.generateDocument({
+  return generator.generateDocument({
     openapi: '3.1.0',
     info: {
       title: 'Reserving Items API',
@@ -45,7 +46,39 @@ export function generateOpenAPIDocument() {
         description: 'Текущий сервер',
       },
     ],
+    tags: [
+      {
+        name: 'Auth',
+        description: 'Авторизация и аутентификация пользователей через NextAuth (Credentials provider)',
+      },
+      {
+        name: 'Registration',
+        description: 'Регистрация новых пользователей',
+      },
+      {
+        name: 'Items',
+        description: 'Управление предметами для аренды (CRUD операции)',
+      },
+      {
+        name: 'Bookings',
+        description: 'Создание и управление бронированиями предметов',
+      },
+      {
+        name: 'Bookings/Mine',
+        description: 'Личные бронирования текущего пользователя как арендатора',
+      },
+      {
+        name: 'Bookings/Received',
+        description: 'Полученные бронирования текущего пользователя как владельца предмета',
+      },
+      {
+        name: 'Messages',
+        description: 'Сообщения в чате бронирования между арендатором и владельцем',
+      },
+      {
+        name: 'Reviews',
+        description: 'Отзывы о бронированиях и пользователях',
+      },
+    ],
   });
-
-  return cachedDocument as object;
 }
