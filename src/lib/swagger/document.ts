@@ -4,6 +4,7 @@ import { registry } from './registry';
 // Импортируем все пути для регистрации (side effects)
 import './paths/auth.paths';
 import './paths/bookings.paths';
+import './paths/items.paths';
 import './paths/messages.paths';
 import './paths/status.paths';
 import './paths/reviews.paths';
