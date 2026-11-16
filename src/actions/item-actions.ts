@@ -228,6 +228,28 @@ export async function updateItemStatus(id: string, isActive: boolean) {
     where: { id },
     data: { isActive },
   });
-
-  return updatedItem;
+return updatedItem;
 }
+
+// ─── Get My Items (by owner) ────────────────────────────────────────
+
+export async function getMyItems() {
+const session = await auth();
+
+if (!session?.user?.id) {
+  return [];
+}
+
+const items = await prisma.item.findMany({
+  where: {
+    ownerId: session.user.id,
+    isActive: true,
+  },
+  orderBy: {
+    createdAt: "desc",
+  },
+});
+
+return items;
+}
+

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import prisma, { serializeDecimal } from '@/lib/prisma';
 import { auth } from '@/lib/auth';
 import type { BookingStatus } from '@prisma/client';
 
@@ -229,7 +229,7 @@ export async function PATCH(
       });
     }
 
-    return NextResponse.json(result);
+    return NextResponse.json(serializeDecimal(result));
   } catch (error) {
     console.error('Error updating booking status:', error);
     return NextResponse.json(

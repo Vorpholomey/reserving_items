@@ -1,7 +1,7 @@
 
 import { NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
-import prisma from '@/lib/prisma';
+import prisma, { serializeDecimal } from '@/lib/prisma';
 import { auth } from '@/lib/auth';
 
 /**
@@ -128,7 +128,7 @@ export async function POST(request: Request) {
       return booking;
     });
 
-    return NextResponse.json(result, { status: 201 });
+    return NextResponse.json(serializeDecimal(result), { status: 201 });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Unknown error';
 
