@@ -105,13 +105,13 @@ async function DashboardContent() {
                       <div className="flex items-baseline justify-between">
                         <div>
                           <span className="text-xl font-bold text-gray-900">
-                            {(item.pricePerDay as number).toLocaleString("ru-RU")} ₽
+                            {Number(item.pricePerDay).toLocaleString("ru-RU")} ₽
                           </span>
                           <span className="text-sm text-gray-500"> / день</span>
                         </div>
-                        {(item.depositAmount as number) > 0 && (
+                        {Number(item.depositAmount) > 0 && (
                           <span className="text-xs text-gray-500">
-                            Залог: {(item.depositAmount as number).toLocaleString("ru-RU")} ₽
+                            Залог: {Number(item.depositAmount).toLocaleString("ru-RU")} ₽
                           </span>
                         )}
                       </div>
