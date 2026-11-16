@@ -14,6 +14,7 @@
 - [Структура проекта](#структура-проекта)
 - [Жизненный цикл брони](#жизненный-цикл-брони)
 - [API маршруты](#api-маршруты)
+- [Swagger документация](#swagger-документация)
 
 ---
 
@@ -291,6 +292,48 @@ reserving_items/
 ### Отзывы
 - `GET /api/reviews` — список отзывов
 - `POST /api/reviews` — создание отзыва
+
+---
+
+## Swagger документация
+
+API документация генерируется автоматически на основе Zod схем с помощью `@asteasolutions/zod-to-openapi`.
+
+### Доступ
+
+- **Swagger UI**: [`/api/swagger-ui`](http://localhost:3000/api/swagger-ui) — интерактивная документация
+- **OpenAPI JSON**: [`/api/docs`](http://localhost:3000/api/docs) — сырой OpenAPI документ
+- **Страница документации**: [`/api-docs`](http://localhost:3000/api-docs)
+
+### Структура
+
+```
+src/lib/swagger/
+├── registry.ts              # OpenAPIRegistry + extendZodWithOpenApi
+├── document.ts              # Генерация OpenAPI документа (импортирует все пути и схемы)
+├── paths/                   # Описание endpoint'ов
+│   ├── auth.paths.ts        # Авторизация
+│   ├── bookings.paths.ts    # Бронирования
+│   ├── items.paths.ts       # Предметы (CRUD)
+│   ├── messages.paths.ts    # Сообщения чата
+│   ├── status.paths.ts      # Смена статуса брони
+│   └── reviews.paths.ts     # Отзывы
+└── schemas/                 # Zod схемы компонентов
+    ├── booking.schema.ts
+    ├── item.schema.ts
+    ├── message.schema.ts
+    ├── review.schema.ts
+    └── user.schema.ts
+```
+
+### Добавление нового endpoint
+
+1. Создайте файл в `src/lib/swagger/paths/` (или дополните существующий)
+2. Зарегистрируйте путь через `registry.registerPath()`
+3. Импортируйте файл в `src/lib/swagger/document.ts` (side-effect import)
+4. **Важно**: добавьте файл в git (`git add src/lib/swagger/paths/yourfile.ts`)
+
+> ⚠️ **Частая ошибка**: новые файлы путей должны быть добавлены в git, иначе они не попадут на production сервер и соответствующие endpoint'ы будут отсутствовать в Swagger.
 
 ---
 
