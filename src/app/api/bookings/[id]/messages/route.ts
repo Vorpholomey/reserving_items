@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import prisma, { serializeDecimal } from '@/lib/prisma';
 import { auth } from '@/lib/auth';
 
 /**
@@ -65,7 +65,7 @@ export async function GET(
       orderBy: { createdAt: 'asc' },
     });
 
-    return NextResponse.json(messages);
+    return NextResponse.json(serializeDecimal(messages));
   } catch (error) {
     console.error('Error fetching messages:', error);
     return NextResponse.json(
@@ -159,7 +159,7 @@ export async function POST(
       },
     });
 
-    return NextResponse.json(message, { status: 201 });
+    return NextResponse.json(serializeDecimal(message), { status: 201 });
   } catch (error) {
     console.error('Error creating message:', error);
     return NextResponse.json(

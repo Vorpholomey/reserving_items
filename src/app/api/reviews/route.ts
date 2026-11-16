@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
+import prisma, { serializeDecimal } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 
 /**
@@ -139,7 +139,7 @@ export async function POST(request: Request) {
       },
     });
 
-    return NextResponse.json(review, { status: 201 });
+    return NextResponse.json(serializeDecimal(review), { status: 201 });
   } catch (error) {
     console.error("Error creating review:", error);
     return NextResponse.json(
@@ -193,7 +193,7 @@ export async function GET(request: Request) {
       });
 
       return NextResponse.json({
-        reviews,
+        reviews: serializeDecimal(reviews),
         averageRating: avgResult._avg.rating ?? 0,
         reviewCount: avgResult._count.rating,
       });
@@ -220,7 +220,7 @@ export async function GET(request: Request) {
         orderBy: { createdAt: "desc" },
       });
 
-      return NextResponse.json(reviews);
+      return NextResponse.json(serializeDecimal(reviews));
     }
 
     return NextResponse.json(

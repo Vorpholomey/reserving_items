@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import ItemsMap from "@/components/ItemsMap";
 import ItemCard from "@/components/ItemCard";
@@ -32,6 +32,19 @@ interface ItemsCatalogClientProps {
   initialRadius?: number;
 }
 
+// Вычисляем zoom на основе радиуса поиска.
+// Маленький радиус → высокий zoom (ближе), большой радиус → низкий zoom (дальше).
+// Радиус 1 км  → zoom ~15
+// Радиус 50 км → zoom ~10
+function radiusToZoom(radiusKm: number): number {
+  // Логарифмическая интерполяция:
+  // zoom = 15 - (log10(radiusKm) / log10(50)) * 5
+  // При radiusKm=1:  log10(1)=0  → zoom=15
+  // При radiusKm=50:  log10(50)=1.7 → zoom=10
+  const zoom = 15 - (Math.log10(radiusKm) / Math.log10(50)) * 5;
+  return Math.round(zoom);
+}
+
 export default function ItemsCatalogClient({
   items,
   initialLat,
@@ -45,6 +58,23 @@ export default function ItemsCatalogClient({
   const [userLat, setUserLat] = useState<number | null>(initialLat ?? null);
   const [userLng, setUserLng] = useState<number | null>(initialLng ?? null);
   const [loadingLocation, setLoadingLocation] = useState(false);
+
+  // Автоматически определить геопозицию при первом открытии страницы
+  useEffect(() => {
+    // Если сервер уже передал координаты — ничего делать не нужно
+    if (initialLat != null && initialLng != null) return;
+
+    if (!navigator.geolocation) return;
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setUserLat(position.coords.latitude);
+        setUserLng(position.coords.longitude);
+      },
+      () => { /* тихо проигнорировать ошибку — пользователь может нажать кнопку */ },
+      { enableHighAccuracy: false, timeout: 5000 }
+    );
+  }, []); // пустая dependency array — выполнить один раз при монтировании
 
   // Map items to format expected by ItemsMap
   const mapItems = items.map((item) => ({
@@ -165,7 +195,7 @@ export default function ItemsCatalogClient({
             <button
               onClick={handleGetLocation}
               disabled={loadingLocation}
-              className="flex w-full items-center justify-center gap-2 rounded-lg bg-green-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60"
+              className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-green-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {loadingLocation ? (
                 <>
@@ -223,7 +253,7 @@ export default function ItemsCatalogClient({
         {/* Map */}
         <div className="order-1 lg:order-2 lg:col-span-3">
           <div className="h-[400px] w-full overflow-hidden rounded-xl border border-gray-200 shadow-sm">
-            <ItemsMap items={mapItems} center={mapCenter} zoom={12} />
+            <ItemsMap items={mapItems} center={mapCenter} zoom={radiusToZoom(radius)} />
           </div>
         </div>
       </div>

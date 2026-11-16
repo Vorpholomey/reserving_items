@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import prisma, { serializeDecimal } from '@/lib/prisma';
 import { auth } from '@/lib/auth';
 
 /**
@@ -31,7 +31,7 @@ export async function GET() {
       },
     });
 
-    return NextResponse.json(bookings);
+    return NextResponse.json(serializeDecimal(bookings));
   } catch (error) {
     console.error('Error fetching my bookings:', error);
     return NextResponse.json(

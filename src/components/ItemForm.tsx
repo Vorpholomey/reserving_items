@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect, type FormEvent } from 'react';
+import { useState, useEffect, useCallback, type FormEvent } from 'react';
 import { createItem, type CreateItemInput } from '@/actions/item-actions';
 import { useRouter } from 'next/navigation';
+import LocationPicker from './LocationPicker';
 
 export default function ItemForm() {
   const router = useRouter();
@@ -15,15 +16,18 @@ export default function ItemForm() {
   const [latitude, setLatitude] = useState<number | undefined>(undefined);
   const [longitude, setLongitude] = useState<number | undefined>(undefined);
   const [locationStatus, setLocationStatus] = useState<'loading' | 'success' | 'error'>('loading');
+  const [locationMode, setLocationMode] = useState<'gps' | 'manual'>('gps');
+  const [manualLocation, setManualLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
+  const fetchLocation = useCallback(() => {
     if (!navigator.geolocation) {
       setLocationStatus('error');
       return;
     }
 
+    setLocationStatus('loading');
     navigator.geolocation.getCurrentPosition(
       (position) => {
         setLatitude(position.coords.latitude);
@@ -35,6 +39,16 @@ export default function ItemForm() {
       },
       { enableHighAccuracy: true, timeout: 10000 }
     );
+  }, []);
+
+  useEffect(() => {
+    if (locationMode === 'gps') {
+      fetchLocation();
+    }
+  }, [locationMode, fetchLocation]);
+
+  const handleManualLocationSelect = useCallback((lat: number, lng: number) => {
+    setManualLocation({ lat, lng });
   }, []);
 
   const addImageField = () => {
@@ -52,10 +66,20 @@ export default function ItemForm() {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
+
+    // Валидация геолокации в ручном режиме
+    if (locationMode === 'manual' && !manualLocation) {
+      setError('Пожалуйста, выберите точку на карте');
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
       const imageData = images.filter((img) => img.trim() !== '');
+
+      const finalLat = locationMode === 'gps' ? latitude : manualLocation?.lat;
+      const finalLng = locationMode === 'gps' ? longitude : manualLocation?.lng;
 
       const data: CreateItemInput = {
         title: title.trim(),
@@ -64,8 +88,8 @@ export default function ItemForm() {
         depositAmount: Number(depositAmount),
         category: category.trim(),
         images: imageData,
-        latitude,
-        longitude,
+        latitude: finalLat,
+        longitude: finalLng,
       };
 
       const result = await createItem(data);
@@ -205,19 +229,77 @@ export default function ItemForm() {
 
       {/* Geolocation */}
       <div className="rounded-lg border px-4 py-3">
-        <p className="text-sm font-medium text-gray-700 mb-1">Геолокация</p>
-        {locationStatus === 'loading' && (
-          <p className="text-sm text-gray-500">Определение местоположения...</p>
+        <p className="text-sm font-medium text-gray-700 mb-3">📍 Способ указания локации</p>
+
+        {/* Mode selector */}
+        <div className="space-y-2 mb-3">
+          <label className="flex items-center gap-3 cursor-pointer">
+            <input
+              type="radio"
+              name="locationMode"
+              value="gps"
+              checked={locationMode === 'gps'}
+              onChange={() => setLocationMode('gps')}
+              className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+            />
+            <span className="text-sm text-gray-700">Текущее местоположение (GPS)</span>
+          </label>
+          <label className="flex items-center gap-3 cursor-pointer">
+            <input
+              type="radio"
+              name="locationMode"
+              value="manual"
+              checked={locationMode === 'manual'}
+              onChange={() => setLocationMode('manual')}
+              className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+            />
+            <span className="text-sm text-gray-700">Указать на карте</span>
+          </label>
+        </div>
+
+        {/* GPS mode content */}
+        {locationMode === 'gps' && (
+          <div>
+            {locationStatus === 'loading' && (
+              <p className="text-sm text-gray-500">Определение местоположения...</p>
+            )}
+            {locationStatus === 'success' && (
+              <p className="text-sm text-green-600">
+                ✓ Локация определена: {latitude?.toFixed(6)}, {longitude?.toFixed(6)}
+              </p>
+            )}
+            {locationStatus === 'error' && (
+              <div>
+                <p className="text-sm text-amber-600 mb-2">
+                  ⚠ Не удалось определить локацию
+                </p>
+                <button
+                  type="button"
+                  onClick={fetchLocation}
+                  className="text-sm text-blue-600 hover:text-blue-700 underline focus:outline-none"
+                >
+                  Повторить попытку
+                </button>
+              </div>
+            )}
+          </div>
         )}
-        {locationStatus === 'success' && (
-          <p className="text-sm text-green-600">
-            ✓ Локация определена: {latitude?.toFixed(6)}, {longitude?.toFixed(6)}
-          </p>
-        )}
-        {locationStatus === 'error' && (
-          <p className="text-sm text-amber-600">
-            ⚠ Не удалось определить локацию — вещь будет создана без координат
-          </p>
+
+        {/* Manual mode content */}
+        {locationMode === 'manual' && (
+          <div className="mt-2">
+            {(() => {
+              const gpsLocation = (latitude !== undefined && longitude !== undefined)
+                ? { lat: latitude, lng: longitude }
+                : null;
+              return (
+                <LocationPicker
+                  onLocationSelect={handleManualLocationSelect}
+                  initialLocation={manualLocation || gpsLocation}
+                />
+              );
+            })()}
+          </div>
         )}
       </div>
 
